@@ -110,6 +110,19 @@ Experimente perguntar essas coisas para o Copilot Chat durante o workshop:
 
 ---
 
+## 🌐 Visualizando Online (GitHub Pages)
+
+Este projeto é compatível com o **GitHub Pages**! Para colocar seu mural no ar:
+
+1.  Vá na aba **Settings** do seu repositório no GitHub.
+2.  No menu lateral esquerdo, clique em **Pages**.
+3.  Em **Source**, selecione `Deploy from a branch`.
+4.  Em **Branch**, selecione `main` e a pasta `/ (root)`.
+5.  Clique em **Save**.
+6.  Aguarde alguns instantes e atualize a página. O GitHub fornecerá o link do seu site!
+
+---
+
 ## 🆘 Precisa de ajuda?
 
 Se algo der errado:
