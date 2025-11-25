@@ -40,6 +40,22 @@ header {
     margin-bottom: 20px;
 }
 
+.sponsor {
+    margin-top: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    opacity: 0.95;
+}
+
+.github-logo {
+    width: 30px;
+    height: 30px;
+    vertical-align: middle;
+}
+
 header h1 {
     font-family: 'Kalam', cursive;
     font-size: 3rem;

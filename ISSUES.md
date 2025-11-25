@@ -76,7 +76,7 @@ Crie um seletor de cor para cada card, permitindo que os usuários escolham sua 
 
 ---
 
-## 📱 Issue #5: Compartilhar no Twitter/X
+## 📱 Issue #5: Compartilhar no Twitter/X/
 
 **Dificuldade:** ⭐ Fácil
 
