@@ -1,5 +1,84 @@
 document.addEventListener('DOMContentLoaded', () => {
     const messagesContainer = document.getElementById('messages-container');
+    let colorPalette = [];
+
+    // Função para extrair cores dominantes de uma imagem
+    function extractColorsFromImage(imagePath) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+
+                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                const pixels = imageData.data;
+                const colorMap = {};
+
+                // Amostragem de pixels (a cada 10 pixels para melhor performance)
+                for (let i = 0; i < pixels.length; i += 40) {
+                    const r = pixels[i];
+                    const g = pixels[i + 1];
+                    const b = pixels[i + 2];
+                    const a = pixels[i + 3];
+
+                    // Ignora pixels transparentes ou muito claros/escuros
+                    if (a < 125 || (r > 240 && g > 240 && b > 240) || (r < 15 && g < 15 && b < 15)) {
+                        continue;
+                    }
+
+                    // Agrupa cores similares (reduz precisão)
+                    const rBucket = Math.round(r / 30) * 30;
+                    const gBucket = Math.round(g / 30) * 30;
+                    const bBucket = Math.round(b / 30) * 30;
+                    const colorKey = `${rBucket},${gBucket},${bBucket}`;
+
+                    colorMap[colorKey] = (colorMap[colorKey] || 0) + 1;
+                }
+
+                // Ordena por frequência e pega as cores mais comuns
+                const sortedColors = Object.entries(colorMap)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5)
+                    .map(([color]) => {
+                        const [r, g, b] = color.split(',');
+                        return `rgb(${r}, ${g}, ${b})`;
+                    });
+
+                resolve(sortedColors);
+            };
+            img.onerror = reject;
+            img.src = imagePath;
+        });
+    }
+
+    // Função para carregar paleta de cores das imagens
+    async function loadColorPalette() {
+        const images = ['imgs/logo.png', 'imgs/favicon.png'];
+        const allColors = [];
+
+        for (const imagePath of images) {
+            try {
+                const colors = await extractColorsFromImage(imagePath);
+                allColors.push(...colors);
+            } catch (error) {
+                console.warn(`Não foi possível extrair cores de ${imagePath}:`, error);
+            }
+        }
+
+        // Remove duplicatas e mantém apenas cores únicas
+        colorPalette = [...new Set(allColors)];
+        
+        // Se não conseguiu extrair cores, usa cores padrão
+        if (colorPalette.length === 0) {
+            colorPalette = ['#ff7b72', '#d2a8ff', '#79c0ff', '#ffa657', '#2dba4e', '#6e5494'];
+        }
+
+        console.log('Paleta de cores extraída:', colorPalette);
+    }
 
     // Função para carregar as mensagens
     async function loadMessages() {
@@ -35,9 +114,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const card = document.createElement('div');
         card.className = 'message-card';
         
-        // Adiciona uma cor aleatória ou sequencial para a borda
-        const colorIndex = (index % 4) + 1;
-        card.classList.add(`card-color-${colorIndex}`);
+        // Usa uma cor da paleta extraída das imagens
+        const colorIndex = index % colorPalette.length;
+        const borderColor = colorPalette[colorIndex];
+        card.style.borderTopColor = borderColor;
 
         const content = document.createElement('p');
         content.className = 'message-content';
@@ -68,6 +148,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return card;
     }
 
-    // Inicia o carregamento
-    loadMessages();
+    // Inicia o carregamento - primeiro carrega a paleta, depois as mensagens
+    async function init() {
+        await loadColorPalette();
+        await loadMessages();
+    }
+
+    init();
 });

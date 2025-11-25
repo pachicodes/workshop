@@ -51,18 +51,19 @@ git checkout -b gambiarra-SEUNOME
 
 ### 4. Hora do Código com Copilot 🤖
 
-Agora vem a parte divertida! Vamos adicionar sua gambiarra.
+Agora vem a parte divertida! Vamos adicionar sua gambiarra usando o poder do Chat.
 
-1.  No explorador de arquivos à esquerda, navegue até a pasta `data` e abra o arquivo `messages.json`.
-2.  Role até o final do arquivo (dentro dos colchetes `[]`).
-3.  **Use o Copilot Chat!**
-    *   Posicione o cursor após o último item (não esqueça da vírgula no item anterior!).
-    *   Abra o **Copilot Chat** na barra lateral esquerda (ícone do balão de fala).
-    *   Peça para ele gerar o JSON para você. Exemplo de prompt:
+1.  Certifique-se de que você está com o **Copilot Chat** aberto.
+2.  Digite um comando direto para ele, como no exemplo abaixo:
 
-    > "Gere um objeto JSON para adicionar neste arquivo com meu nome [Seu Nome], uma mensagem contando minha melhor gambiarra técnica e a data de hoje. Siga o padrão dos itens anteriores."
+    > @workspace Adicione uma nova gambiarra no arquivo messages.json. Meu nome é [Seu Nome] e minha gambiarra é: "[Sua Gambiarra]".
 
-    *   Copie o código gerado e cole no arquivo `messages.json`.
+    *Exemplo real:*
+    > "@workspace Adicione uma nova gambiarra no arquivo messages.json. Meu nome é @pachicodes e minha gambiarra é usar fita crepe para segurar o cabo de rede."
+
+3.  O Copilot vai entender a estrutura do projeto, encontrar o arquivo certo e sugerir a edição.
+4.  Clique no botão para **Aplicar** (Apply) a alteração sugerida.
+5.  Verifique se ficou tudo certo e salve o arquivo!
 
 ### 5. Testando no Navegador 🧪
 

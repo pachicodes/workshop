@@ -1,5 +1,5 @@
 :root {
-    --primary-color: #6e5494;
+    --primary-color: #ff7b00;
     --bg-color: #f6f8fa;
     --card-bg: #ffffff;
     --text-color: #24292e;
@@ -32,6 +32,12 @@ header {
     text-align: center;
     margin-bottom: 40px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.logo {
+    max-width: 150px;
+    height: auto;
+    margin-bottom: 20px;
 }
 
 header h1 {
