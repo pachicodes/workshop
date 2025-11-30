@@ -12,9 +12,14 @@
 <body>
     <header>
         <div class="container">
-            <div class="logos">
-                <img src="imgs/logo.png" alt="GambiConf Logo" class="logo">
-                <img src="imgs/github-mark.png" alt="GitHub" class="github-logo">
+            <div class="header-top">
+                <div class="logos">
+                    <img src="imgs/logo.png" alt="GambiConf Logo" class="logo">
+                    <img src="imgs/github-mark.png" alt="GitHub" class="github-logo">
+                </div>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Alternar tema claro/escuro" title="Dark Mode">
+                    <span class="theme-icon">🌙</span>
+                </button>
             </div>
             <h1>✨ Mural de Gambiarras</h1>
             <p>Compartilhe sua melhor solução técnica alternativa (vulgo gambiarra) usando GitHub Copilot!</p>
@@ -22,18 +27,59 @@
     </header>
 
     <main class="container">
+        <!-- Estatísticas: gráfico de gambiarras por data -->
+        <section class="stats-section">
+            <details id="stats-details">
+                <summary>📊 Estatísticas</summary>
+                <div class="stats-controls">
+                    <label for="chart-type-select">Tipo:</label>
+                    <select id="chart-type-select">
+                        <option value="bar">Barras</option>
+                        <option value="line">Linha</option>
+                    </select>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="gambiarra-stats-chart" width="800" height="250"></canvas>
+                </div>
+            </details>
+        </section>
+        <section id="daily-gambiarra-section" class="daily-gambiarra-section" style="display: none;" aria-label="Gambiarra do Dia">
+            <!-- A Gambiarra do Dia será inserida aqui via JavaScript -->
+        </section>
+        
         <section class="search-bar">
             <input id="search-input" type="text" placeholder="Buscar gambiarras por texto ou autor..." aria-label="Buscar gambiarras" />
+            <button id="random-highlight-btn" class="btn" type="button" aria-label="Destacar gambiarra aleatória">🎲 Destacar aleatória</button>
         </section>
         <div id="messages-container" class="messages-grid">
             <!-- As gambiarras serão carregadas aqui via JavaScript -->
             <div class="loading">Carregando gambiarras...</div>
         </div>
+        <section id="stats-section" class="stats-section" aria-labelledby="stats-title">
+            <h2 id="stats-title">📊 Estatísticas das Gambiarras</h2>
+            <div class="stats-grid" id="stats-grid">
+                <div class="stat-card loading">Calculando estatísticas...</div>
+            </div>
+        </section>
     </main>
 
     <footer>
         <p>Feito com 💜 na GambiConf</p>
     </footer>
+
+    <!-- Chart.js CDN (leve e fácil de usar) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <div id="qr-modal" class="qr-modal" aria-hidden="true" style="display:none;">
+        <div class="qr-overlay" tabindex="-1" data-action="close-qr"></div>
+        <div class="qr-dialog" role="dialog" aria-modal="true" aria-labelledby="qr-title">
+            <button class="qr-close" aria-label="Fechar QR" data-action="close-qr">✕</button>
+            <h3 id="qr-title">Compartilhar gambiarra</h3>
+            <div class="qr-body">
+                <img id="qr-image" alt="QR code para compartilhar" src="" />
+                <p id="qr-url" class="sr-only"></p>
+            </div>
+        </div>
+    </div>
 
     <script src="js/script.js"></script>
 </body>
