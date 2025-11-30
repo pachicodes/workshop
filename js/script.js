@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const themeToggle = document.getElementById('theme-toggle');
     const glitterToggle = document.getElementById('glitter-toggle');
     const randomBtn = document.getElementById('random-highlight-btn');
+    const addGifBtn = document.getElementById('add-gif-btn');
+    const gifOverlay = document.getElementById('gif-overlay');
     let colorPalette = [];
     let allMessages = [];
     let statsChart = null;
@@ -69,8 +71,118 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inicializa o tema
     initTheme();
 
+    // ==================== Card Color Personalization ====================
+
+    /**
+     * Gera a chave única para armazenar a cor de um card no localStorage
+     * @param {number} cardIndex - Índice do card
+     * @returns {string} Chave única no formato "card-color-{index}"
+     */
+    function getCardColorKey(cardIndex) {
+        return `card-color-${cardIndex}`;
+    }
+
+    /**
+     * Salva a cor personalizada de um card no localStorage
+     * @param {number} cardIndex - Índice do card
+     * @param {string} color - Cor em formato hex ou nome (ex: "#ff5500")
+     */
+    function saveCardColor(cardIndex, color) {
+        const key = getCardColorKey(cardIndex);
+        try {
+            localStorage.setItem(key, color);
+        } catch (error) {
+            console.warn(`Erro ao salvar cor do card ${cardIndex}:`, error);
+        }
+    }
+
+    /**
+     * Carrega a cor personalizada de um card do localStorage
+     * @param {number} cardIndex - Índice do card
+     * @returns {string|null} Cor salva ou null se não existir
+     */
+    function loadCardColor(cardIndex) {
+        const key = getCardColorKey(cardIndex);
+        try {
+            return localStorage.getItem(key);
+        } catch (error) {
+            console.warn(`Erro ao carregar cor do card ${cardIndex}:`, error);
+            return null;
+        }
+    }
+
+    /**
+     * Remove a cor personalizada de um card do localStorage
+     * @param {number} cardIndex - Índice do card
+     */
+    function resetCardColor(cardIndex) {
+        const key = getCardColorKey(cardIndex);
+        try {
+            localStorage.removeItem(key);
+        } catch (error) {
+            console.warn(`Erro ao resetar cor do card ${cardIndex}:`, error);
+        }
+    }
+
+    /**
+     * Aplica a cor (personalizada ou padrão) a um card
+     * @param {HTMLElement} cardElement - Elemento do card
+     * @param {number} cardIndex - Índice do card
+     * @param {string} defaultColor - Cor padrão da paleta
+     */
+    function applyCardColor(cardElement, cardIndex, defaultColor) {
+        const savedColor = loadCardColor(cardIndex);
+        const colorToApply = savedColor || defaultColor;
+        cardElement.style.borderTopColor = colorToApply;
+    }
+
+    /**
+     * Cria o color picker para personalizar a cor do card
+     * @param {HTMLElement} cardElement - Elemento do card
+     * @param {number} cardIndex - Índice do card
+     * @param {string} defaultColor - Cor padrão
+     * @returns {HTMLElement} Container com color picker e botão reset
+     */
+    function createColorPickerControl(cardElement, cardIndex, defaultColor) {
+        const container = document.createElement('div');
+        container.className = 'color-picker-control';
+
+        const colorInput = document.createElement('input');
+        colorInput.type = 'color';
+        colorInput.className = 'color-picker-input';
+        colorInput.setAttribute('aria-label', 'Escolher cor para o card');
+        colorInput.title = 'Personalizar cor do card';
+        
+        // Carrega a cor salva ou usa a padrão
+        const savedColor = loadCardColor(cardIndex);
+        colorInput.value = savedColor || defaultColor;
+
+        colorInput.addEventListener('change', (e) => {
+            const newColor = e.target.value;
+            saveCardColor(cardIndex, newColor);
+            applyCardColor(cardElement, cardIndex, newColor);
+        });
+
+        const resetButton = document.createElement('button');
+        resetButton.className = 'color-reset-btn';
+        resetButton.textContent = '↻';
+        resetButton.setAttribute('aria-label', 'Resetar cor para padrão');
+        resetButton.title = 'Resetar cor';
+
+        resetButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetCardColor(cardIndex);
+            colorInput.value = defaultColor;
+            applyCardColor(cardElement, cardIndex, defaultColor);
+        });
+
+        container.appendChild(colorInput);
+        container.appendChild(resetButton);
+        return container;
+    }
+
     // ==================== Date-Based Seeding ====================
-    
+
     /**
      * Gera um valor seed consistente baseado na data do dia
      * Mesma data sempre gera o mesmo valor seed
@@ -81,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const year = today.getFullYear();
         const month = today.getMonth();
         const day = today.getDate();
-        
+
         // Combina data em um número para seed
         const dayNumber = year * 10000 + (month + 1) * 100 + day;
         return dayNumber;
@@ -303,6 +415,39 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Erro:', error);
             messagesContainer.innerHTML = '<p class="error">Ops! Ocorreu um erro ao carregar os recados.</p>';
         }
+    }
+
+    function getLikes(msgId) {
+        const likes = localStorage.getItem(`like_${msgId}`);
+        return likes ? parseInt(likes, 10) : 0;
+    }
+
+    function setLikes(msgId, count) {
+        localStorage.setItem(`like_${msgId}`, count.toString());
+    }
+
+    function hasUserLiked(msgId) {
+        return localStorage.getItem(`user_liked_${msgId}`) === 'true';
+    }
+
+    function setUserLiked(msgId, liked) {
+        localStorage.setItem(`user_liked_${msgId}`, liked.toString());
+    }
+
+    function createHeartIcon(filled = false) {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('fill', filled ? '#ff7b00' : 'none');
+        svg.setAttribute('stroke', '#ff7b00');
+        svg.setAttribute('stroke-width', '2');
+        svg.setAttribute('stroke-linecap', 'round');
+        svg.setAttribute('stroke-linejoin', 'round');
+        
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z');
+        svg.appendChild(path);
+        
+        return svg;
     }
 
     // Função para renderizar as mensagens na tela
@@ -600,8 +745,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Usa uma cor da paleta extraída das imagens
         const colorIndex = index % colorPalette.length;
-        const borderColor = colorPalette[colorIndex];
-        card.style.borderTopColor = borderColor;
+        const defaultBorderColor = colorPalette[colorIndex];
+        
+        // Aplica cor personalizada ou padrão
+        applyCardColor(card, index, defaultBorderColor);
 
         const content = document.createElement('p');
         content.className = 'message-content';
@@ -611,12 +758,11 @@ document.addEventListener('DOMContentLoaded', () => {
         cardHeader.className = 'card-header';
         cardHeader.appendChild(content);
 
-        cardHeader.appendChild(createCopyButton(msg.message));
-
         const controls = document.createElement('div');
         controls.className = 'card-controls';
         controls.appendChild(createCopyButton(msg.message));
         controls.appendChild(createQRButton(msg.message));
+        controls.appendChild(createColorPickerControl(card, index, defaultBorderColor));
 
         cardHeader.appendChild(controls);
 
@@ -636,7 +782,45 @@ document.addEventListener('DOMContentLoaded', () => {
             dateSpan.textContent = msg.date;
         }
 
+        // Criar botão de like com ícone SVG
+        const msgId = msg.id || `msg-${index}`;
+        const liked = hasUserLiked(msgId);
+        const count = getLikes(msgId);
+
+        const likeButton = document.createElement('button');
+        likeButton.className = `like-button ${liked ? 'liked' : ''}`;
+        likeButton.setAttribute('aria-label', `Curtir - ${count} curtidas`);
+        
+        // Adicionar ícone SVG
+        likeButton.appendChild(createHeartIcon(liked));
+
+        // Adicionar contador
+        const countSpan = document.createElement('span');
+        countSpan.className = 'like-count';
+        countSpan.textContent = count > 0 ? count : '';
+        likeButton.appendChild(countSpan);
+
+        // Event listener para curtir/descurtir
+        likeButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            const isLiked = hasUserLiked(msgId);
+            const currentCount = getLikes(msgId);
+            const newCount = isLiked ? currentCount - 1 : currentCount + 1;
+            
+            setUserLiked(msgId, !isLiked);
+            setLikes(msgId, newCount);
+
+            // Atualizar visual do botão
+            likeButton.className = `like-button ${!isLiked ? 'liked' : ''}`;
+            likeButton.innerHTML = '';
+            likeButton.appendChild(createHeartIcon(!isLiked));
+            countSpan.textContent = newCount > 0 ? newCount : '';
+            likeButton.appendChild(countSpan);
+            likeButton.setAttribute('aria-label', `Curtir - ${newCount} curtidas`);
+        });
+
         footer.appendChild(authorName);
+        footer.appendChild(likeButton);
         footer.appendChild(dateSpan);
 
         card.appendChild(cardHeader);
@@ -653,6 +837,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setupRandomHighlight();
         const glitterController = setupGlitterCursor();
         setupGlitterToggle(glitterController);
+        setupRandomGif();
     }
 
     init();
@@ -812,6 +997,49 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         // Expõe um controller para o toggle
         return { setPersistent };
+    }
+
+    // ===== GIF aleatório =====
+    // Fonte pública sem chave: cataas.com (Cat as a Service)
+    // Para usar Giphy/Tenor com API key, trocar por uma chamada fetch
+    function setupRandomGif() {
+        if (!addGifBtn || !gifOverlay) return;
+
+        const randomBetween = (min, max) => {
+            if (max <= min) return min;
+            return Math.random() * (max - min) + min;
+        };
+
+        addGifBtn.addEventListener('click', () => {
+            const img = document.createElement('img');
+            img.className = 'gif-item';
+
+            // Tamanho aleatório
+            const width = Math.round(randomBetween(140, 280));
+            img.style.width = width + 'px';
+
+            // Escolhe uma fonte aleatória: cataas random gif
+            // Usamos um param random para evitar cache
+            img.src = `https://cataas.com/cat/gif?${Date.now()}_${Math.floor(Math.random()*100000)}`;
+
+            // Quando carregar, posiciona em um ponto aleatório da viewport
+            img.onload = () => {
+                const overlayRect = gifOverlay.getBoundingClientRect();
+                const h = img.naturalHeight * (width / img.naturalWidth);
+                const maxLeft = Math.max(0, overlayRect.width - width);
+                const maxTop = Math.max(0, overlayRect.height - h);
+
+                const left = Math.round(randomBetween(0, maxLeft));
+                const top = Math.round(randomBetween(0, maxTop));
+                const rotate = Math.round(randomBetween(-12, 12));
+
+                img.style.left = left + 'px';
+                img.style.top = top + 'px';
+                img.style.transform = `rotate(${rotate}deg)`;
+            };
+
+            gifOverlay.appendChild(img);
+        });
     }
 
     // ===== Estatísticas =====
