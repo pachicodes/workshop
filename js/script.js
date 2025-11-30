@@ -133,6 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const messages = await response.json();
             allMessages = Array.isArray(messages) ? messages : [];
             renderMessages(allMessages);
+            buildStats(allMessages);
         } catch (error) {
             console.error('Erro:', error);
             messagesContainer.innerHTML = '<p class="error">Ops! Ocorreu um erro ao carregar os recados.</p>';
@@ -345,5 +346,73 @@ document.addEventListener('DOMContentLoaded', () => {
             chosen.setAttribute('tabindex', '-1');
             chosen.focus({ preventScroll: true });
         });
+    }
+
+    // ===== Estatísticas =====
+    function buildStats(messages) {
+        const statsGrid = document.getElementById('stats-grid');
+        if (!statsGrid) return;
+
+        if (!messages || messages.length === 0) {
+            statsGrid.innerHTML = '<div class="stat-card">Nenhuma gambiarra ainda 😢</div>';
+            return;
+        }
+
+        // Total de cards
+        const total = messages.length;
+
+        // Contagem de contribuições por autor (reduce) - case insensitive
+        const contributorMap = messages.reduce((acc, m) => {
+            const rawName = (m.name || 'Anônimo').trim();
+            const key = rawName.toLowerCase();
+            if (!acc[key]) {
+                acc[key] = { name: rawName, count: 0 };
+            }
+            acc[key].count += 1;
+            return acc;
+        }, {});
+
+        // Converte em array e ordena (sort)
+        const contributorArray = Object.values(contributorMap)
+            .sort((a, b) => b.count - a.count);
+
+        const topContributor = contributorArray[0];
+        const topOthers = contributorArray.slice(1, 4);
+
+        // Gambiarra com maior texto (reduce)
+        const longestMessage = messages.reduce((longest, m) => {
+            return (m.message && m.message.length > (longest.message || '').length) ? m : longest;
+        }, { message: '' });
+
+        const longestLength = (longestMessage.message || '').length;
+        const snippet = (longestMessage.message || '').slice(0, 180) + (longestLength > 180 ? '…' : '');
+
+        // Monta HTML dos cards
+        const totalCard = `
+            <div class="stat-card" role="figure" aria-label="Total de gambiarras">
+                <div class="stat-header">TOTAL</div>
+                <div class="stat-value">🧮 ${total}</div>
+                <div class="stat-detail">Quantidade de gambiarras compartilhadas.</div>
+            </div>
+        `;
+
+        const topCard = `
+            <div class="stat-card" role="figure" aria-label="Contribuidor mais ativo (case-insensitive)">
+                <div class="stat-header">MAIS ATIVO</div>
+                <div class="stat-value">🏆 ${topContributor.name}</div>
+                <div class="stat-detail">${topContributor.count} contribuições${topOthers.length ? '<br><small>Outros: ' + topOthers.map(o => `${o.name} (${o.count})`).join(', ') + '</small>' : ''}</div>
+            </div>
+        `;
+
+        const longestCard = `
+            <div class="stat-card longest" role="figure" aria-label="Gambiarra com texto mais longo">
+                <div class="stat-header">MAIOR TEXTO</div>
+                <div class="stat-value">📝 ${longestLength} chars</div>
+                <div class="stat-detail">Autor: <strong>${(longestMessage.name || 'Anônimo')}</strong></div>
+                <div class="stat-snippet" title="Trecho da gambiarra mais longa">"${snippet}"</div>
+            </div>
+        `;
+
+        statsGrid.innerHTML = totalCard + topCard + longestCard;
     }
 });
