@@ -82,6 +82,28 @@ header {
     transform: scale(0.95);
 }
 
+.theme-toggle.active {
+    box-shadow: 0 0 0 4px rgba(255, 183, 77, 0.15);
+    transform: scale(1.05);
+}
+
+.header-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* When global glitter is enabled we hide the default cursor */
+/* When glitter is enabled, keep the cursor visible and let sparkles follow it */
+body.glitter-enabled { cursor: auto; }
+
+/* Quando o usuário está digitando em um campo, preserve o cursor de texto */
+body.glitter-enabled input,
+body.glitter-enabled textarea,
+body.glitter-enabled [contenteditable] {
+    cursor: text !important;
+}
+
 .logo {
     max-width: 150px;
     height: auto;
@@ -265,6 +287,37 @@ body.dark-mode .message-card {
 .copy-button.copy-error {
     background-color: #d1242f;
 }
+
+/* Glitter cursor effect */
+.glitter-hover { cursor: pointer; }
+.glitter-overlay {
+    position: fixed;
+    pointer-events: none;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+}
+.glitter-sparkle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.95), rgba(255,255,255,0.6) 30%, rgba(255,255,255,0) 70%), radial-gradient(circle at 70% 70%, rgba(255,200,60,0.9), rgba(255,120,80,0.7) 35%, rgba(255,0,0,0) 60%);
+    transform: translate(-50%, -50%) scale(0.7) rotate(0deg);
+    opacity: 0;
+    animation: sparkle 900ms forwards ease-out;
+    mix-blend-mode: screen;
+    filter: drop-shadow(0 0 4px rgba(255,255,255,0.7));
+}
+
+@keyframes sparkle {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(0.6) rotate(0deg); }
+    60% { opacity: 1; transform: translate(-50%, -80%) scale(1.2) rotate(90deg); }
+    100% { opacity: 0; transform: translate(-50%, -140%) scale(1.6) rotate(180deg); }
+}
+
 
 @keyframes copyPulse {
     0% { transform: scale(1); }

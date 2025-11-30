@@ -17,9 +17,12 @@
                     <img src="imgs/logo.png" alt="GambiConf Logo" class="logo">
                     <img src="imgs/github-mark.png" alt="GitHub" class="github-logo">
                 </div>
-                <button id="theme-toggle" class="theme-toggle" aria-label="Alternar tema claro/escuro" title="Dark Mode">
-                    <span class="theme-icon">🌙</span>
-                </button>
+                <div class="header-controls">
+                    <button id="theme-toggle" class="theme-toggle" aria-label="Alternar tema claro/escuro" title="Dark Mode">
+                        <span class="theme-icon">🌙</span>
+                    </button>
+                    <button id="glitter-toggle" class="theme-toggle" aria-label="Alternar glitter do cursor" title="Glitter">✨</button>
+                </div>
             </div>
             <h1>✨ Mural de Gambiarras</h1>
             <p>Compartilhe sua melhor solução técnica alternativa (vulgo gambiarra) usando GitHub Copilot!</p>
@@ -30,7 +33,7 @@
         <!-- Estatísticas: gráfico de gambiarras por data -->
         <section class="stats-section">
             <details id="stats-details">
-                <summary>📊 Estatísticas</summary>
+                <summary class="glitter-hover">📊 Estatísticas</summary>
                 <div class="stats-controls">
                     <label for="chart-type-select">Tipo:</label>
                     <select id="chart-type-select">

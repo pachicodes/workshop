@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dailyGambiarraSection = document.getElementById('daily-gambiarra-section');
 
     const themeToggle = document.getElementById('theme-toggle');
+    const glitterToggle = document.getElementById('glitter-toggle');
     const randomBtn = document.getElementById('random-highlight-btn');
     let colorPalette = [];
     let allMessages = [];
@@ -25,6 +26,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Configura o toggle da opção de glitter persistente
+    function setupGlitterToggle(controller) {
+        if (!glitterToggle || !controller) return;
+        const stored = localStorage.getItem('glitterPersistent');
+        const pref = stored === null ? true : (stored === 'true');
+        controller.setPersistent(pref);
+        if (pref) glitterToggle.classList.add('active');
+        glitterToggle.setAttribute('aria-pressed', pref ? 'true' : 'false');
+
+        glitterToggle.addEventListener('click', () => {
+            const enabled = !document.body.classList.contains('glitter-enabled');
+            controller.setPersistent(enabled);
+            glitterToggle.classList.toggle('active', enabled);
+            glitterToggle.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+            localStorage.setItem('glitterPersistent', enabled ? 'true' : 'false');
+        });
+    }
+
     // Atualiza o ícone do botão
     function updateThemeIcon(isDark) {
         if (themeToggle) {
@@ -43,6 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event listener do botão
     if (themeToggle) {
         themeToggle.addEventListener('click', toggleTheme);
+        // opcional: efeito de glitter no botão de tema
+        themeToggle.classList.add('glitter-hover');
     }
 
     // Inicializa o tema
@@ -489,6 +510,9 @@ document.addEventListener('DOMContentLoaded', () => {
             copyToClipboard(messageText, button);
         });
 
+        // Habilita glitter cursor neste botão
+        button.classList.add('glitter-hover');
+
         return button;
     }
 
@@ -627,6 +651,8 @@ document.addEventListener('DOMContentLoaded', () => {
         await loadMessages();
         setupSearch();
         setupRandomHighlight();
+        const glitterController = setupGlitterCursor();
+        setupGlitterToggle(glitterController);
     }
 
     init();
@@ -691,6 +717,101 @@ document.addEventListener('DOMContentLoaded', () => {
             chosen.setAttribute('tabindex', '-1');
             chosen.focus({ preventScroll: true });
         });
+        // Aplica a classe 'glitter-hover' no botão de destaque aleatório
+        randomBtn.classList.add('glitter-hover');
+    }
+
+    // Setup do cursor com glitter para elementos com a classe .glitter-hover
+    function setupGlitterCursor() {
+        const overlay = document.createElement('div');
+        overlay.className = 'glitter-overlay';
+        document.body.appendChild(overlay);
+
+        // Observador para aplicar classe a botões de cópia criados dinamicamente
+        const messagesObserver = new MutationObserver(() => {
+            document.querySelectorAll('.copy-button').forEach(cb => cb.classList.add('glitter-hover'));
+        });
+        messagesObserver.observe(messagesContainer, { childList: true, subtree: true });
+
+        let active = false;
+        let persistentEnabled = false; // controlado externamente por setPersistent
+        let lastMousePos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+        let persistentInterval = null;
+        const neonPalette = ['#ff49ac', '#5af2ff', '#fff64d', '#6bff4a', '#ff9f4d'];
+
+        document.addEventListener('mouseover', (e) => {
+            const el = e.target.closest && e.target.closest('.glitter-hover');
+            if (el) active = true;
+        });
+        document.addEventListener('mouseout', (e) => {
+            const el = e.target.closest && e.target.closest('.glitter-hover');
+            if (el) active = false;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            lastMousePos.x = e.clientX; lastMousePos.y = e.clientY;
+            if (!active && !persistentEnabled) return;
+            const r = Math.random();
+            const count = r > 0.85 ? 3 : (r > 0.6 ? 2 : 1);
+            for (let i = 0; i < count; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'glitter-sparkle';
+                // color neon 90s vibe
+                const c = neonPalette[Math.floor(Math.random() * neonPalette.length)];
+                sparkle.style.background = `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.95), rgba(255,255,255,0.6) 30%, rgba(255,255,255,0) 70%), radial-gradient(circle at 70% 70%, ${c}, ${c} 35%, rgba(255,255,255,0) 60%)`;
+                const offsetX = (Math.random() - 0.5) * 12;
+                const offsetY = (Math.random() - 0.5) * 12;
+                sparkle.style.left = (e.clientX + offsetX) + 'px';
+                sparkle.style.top = (e.clientY + offsetY) + 'px';
+                const scale = 0.6 + Math.random() * 1.6;
+                sparkle.style.width = Math.round(6 * scale) + 'px';
+                sparkle.style.height = Math.round(6 * scale) + 'px';
+                overlay.appendChild(sparkle);
+                setTimeout(() => {
+                    try { overlay.removeChild(sparkle); } catch (err) { }
+                }, 1000);
+            }
+        });
+
+        function startPersistent() {
+            if (persistentInterval) return;
+            persistentInterval = setInterval(() => {
+                // spawn a single sparkle near last recorded position
+                const e = { clientX: lastMousePos.x, clientY: lastMousePos.y };
+                const r2 = Math.random();
+                const count = r2 > 0.9 ? 3 : (r2 > 0.85 ? 2 : 1);
+                for (let i = 0; i < count; i++) {
+                    const sparkle = document.createElement('div');
+                    sparkle.className = 'glitter-sparkle';
+                    const c = neonPalette[Math.floor(Math.random() * neonPalette.length)];
+                    sparkle.style.background = `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.95), rgba(255,255,255,0.6) 30%, rgba(255,255,255,0) 70%), radial-gradient(circle at 70% 70%, ${c}, ${c} 35%, rgba(255,255,255,0) 60%)`;
+                    const offsetX = (Math.random() - 0.5) * 18;
+                    const offsetY = (Math.random() - 0.5) * 18;
+                    sparkle.style.left = (e.clientX + offsetX) + 'px';
+                    sparkle.style.top = (e.clientY + offsetY) + 'px';
+                    const scale = 0.6 + Math.random() * 1.6;
+                    sparkle.style.width = Math.round(6 * scale) + 'px';
+                    sparkle.style.height = Math.round(6 * scale) + 'px';
+                    overlay.appendChild(sparkle);
+                    setTimeout(() => { try { overlay.removeChild(sparkle); } catch (err) { } }, 1200);
+                }
+            }, 100);
+        }
+
+        function stopPersistent() { if (persistentInterval) { clearInterval(persistentInterval); persistentInterval = null; } }
+
+        function setPersistent(enabled) {
+            persistentEnabled = !!enabled;
+            if (persistentEnabled) {
+                document.body.classList.add('glitter-enabled');
+                startPersistent();
+            } else {
+                document.body.classList.remove('glitter-enabled');
+                stopPersistent();
+            }
+        }
+        // Expõe um controller para o toggle
+        return { setPersistent };
     }
 
     // ===== Estatísticas =====
